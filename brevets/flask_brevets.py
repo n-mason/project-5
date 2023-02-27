@@ -9,6 +9,7 @@ from flask import request
 import arrow  # Replacement for datetime, based on moment.js
 import acp_times  # Brevet time calculations
 import config
+from pymongo_funcs import brevet_insert, brevet_fetch
 
 import logging
 
