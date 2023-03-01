@@ -36,24 +36,17 @@ def test_pymongo_test1():
 
     start_time_str = start_time.format("YYYY-MM-DDTHH:mm")
     
-    data_to_insert = {"start_time": start_time_str, "brevet_distance": dist, "checkpoints": checkpoints_str}
-    brevet_insert(start_time_str, dist, checkpoints_str)
+    # record is a dictionary that contains start time, brevet distance and a dictionary of the checkpoint times
+    record = {"start_time": start_time_str, "brevet_distance": dist, "checkpoints": checkpoints_str}
 
-    fetch_result = brevet_fetch(start_time_str, dist, checkpoints_str)
-    # fetch_result also contains the "id" key that gets automatically added to the database, so need to filter that out
-    fetch_result_filtered = {}
-    
-    for key, value in fetch_result.items():
-        if key == "_id": # filter out the _id key
-            pass
-        else:
-            fetch_result_filtered[key] = value
+    # Upon inserting a record, the primary key (_id) of the record will be returned
+    insertion_pk = brevet_insert(start_time_str, dist, checkpoints_str)
 
-    #print(data_to_insert)
-    #print("----------------------------------------")
-    #print(fetch_result_filtered)
+    # We can now fetch the record that was inserted
+    start_time_res, brev_dist_res, chckpts_res = brevet_fetch()
 
-    assert(data_to_insert == fetch_result_filtered)
+    # Now if the data matches up with what was inserted, then test should pass
+    assert((start_time_res == start_time_str) and (brev_dist_res == dist) and (chckpts_res == checkpoints_str))
 
 
 def test_pymongo_test2():
@@ -81,14 +74,14 @@ def test_pymongo_test2():
 
     start_time_str = start_time.format("YYYY-MM-DDTHH:mm")
     
-    data_to_insert = {"start_time": start_time_str, "brevet_distance": dist, "checkpoints": checkpoints_str}
-    brevet_insert(start_time_str, dist, checkpoints_str)
+    # record is a dictionary that contains start time, brevet distance and a dictionary of the checkpoint times
+    record = {"start_time": start_time_str, "brevet_distance": dist, "checkpoints": checkpoints_str}
 
-    fetch_result = brevet_fetch(start_time_str, dist, checkpoints_str)
-    fetch_result_filtered = {}
+    # Upon inserting a record, the primary key (_id) of the record will be returned
+    insertion_pk = brevet_insert(start_time_str, dist, checkpoints_str)
+
+    # We can now fetch the record that was inserted
+    start_time_res, brev_dist_res, chckpts_res = brevet_fetch()
     
-    for key, value in fetch_result.items():
-        if key == "_id": # filter out the _id key
-            pass
-        else:
-            fetch_result_filtered[key] = value
+    # Now if the data matches up with what was inserted, then test should pass
+    assert((start_time_res == start_time_str) and (brev_dist_res == dist) and (chckpts_res == checkpoints_str))

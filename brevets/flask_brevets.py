@@ -65,6 +65,15 @@ def _calc_times():
     result = {"open": open_time, "close": close_time}
     return flask.jsonify(result=result)
 
+@app.route("/_brevet_insert")
+def _brevet_insert():
+    # Get information from JS, then call the functions that are imported from pymongo_funcs
+    pass
+
+
+@app.route("/_brevet_fetch")
+def _brevet_fetch():
+    pass
 
 #############
 
