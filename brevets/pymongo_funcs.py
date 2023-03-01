@@ -44,7 +44,3 @@ def brevet_fetch():
     for brev_data in brevet_data_set:
         # Each piece of brev data is stored as a start time, brevet distance and checkpoints dictionary
         return brev_data["start_time"], brev_data["brevet_distance"], brev_data["checkpoints"]
-
-    #request = {"start_time": start_time_str, "brevet_distance": brev_dist, "checkpoints": chckpts}
-    #mydict = collection.find_one(request)
-    return 0 

@@ -65,8 +65,8 @@
                <div class="col-md-6">
                   <label>Begins at</label>
                   <input type="datetime-local" name="begin_date" id="begin_date" value="2021-01-01T00:00" />
-                  <button id="fetch" type="button">Update</button>
-                  <button id="submit" type="button">Submit</button>
+                  <button id="fetch">Display</button>
+                  <button id="submit">Submit</button>
                </div>
                <!-- columns 5 to 10 -->
             </div>
@@ -118,35 +118,33 @@
             var TIME_CALC_URL = SCRIPT_ROOT + "/_calc_times";
             var SUBMIT_URL = SCRIPT_ROOT + "/submit";
             var FETCH_URL = SCRIPT_ROOT + "/fetch";
-
-            //var open_times_arr = []
-            //var close_times_arr = []
-            var brevet_dist = $("#brevet_dist_km").val();
-            var start_time = $("#begin_date").val();
             
             function calc_times(control) {
-              var km = control.find("input[name='km']").val();
-              var open_time_field = control.find("input[name='open']");
-              var close_time_field = control.find("input[name='close']");
+               var km = control.find("input[name='km']").val();
+               var open_time_field = control.find("input[name='open']");
+               var close_time_field = control.find("input[name='close']");
 
-              $.getJSON(TIME_CALC_URL, {km: km, brevet_dist: brevet_dist, start_time: start_time}).done(
-                  function(data) {
-                     var times = data.result;
-                     console.log("Got a response: ");
-                     console.log("Response.open = " + times.open);
-                     // This part will automatically fill the open and close slots,
-                     // so don't worry about those.
-                     open_time_field.val(moment(times.open).format("YYYY-MM-DDTHH:mm"));
-                     close_time_field.val(moment(times.close).format("YYYY-MM-DDTHH:mm"));
+               var brevet_dist = $("#brevet_dist_km").val();
+               var start_time = $("#begin_date").val();
 
-                     //open_times_arr.push(moment(times.open).format("YYYY-MM-DDTHH:mm"));
-                     //close_times_arr.push(moment(times.close).format("YYYY-MM-DDTHH:mm"));
-                  }
-               ).fail(function(err){
-                 // In case you get an error...
-                 console.log("Error!");
-                 console.log(err);
-               });
+               $.getJSON(TIME_CALC_URL, {km: km, brevet_dist: brevet_dist, start_time: start_time}).done(
+                     function(data) {
+                        var times = data.result;
+                        console.log("Got a response: ");
+                        console.log("Response.open = " + times.open);
+                        // This part will automatically fill the open and close slots,
+                        // so don't worry about those.
+                        open_time_field.val(moment(times.open).format("YYYY-MM-DDTHH:mm"));
+                        close_time_field.val(moment(times.close).format("YYYY-MM-DDTHH:mm"));
+
+                        //open_times_arr.push(moment(times.open).format("YYYY-MM-DDTHH:mm"));
+                        //close_times_arr.push(moment(times.close).format("YYYY-MM-DDTHH:mm"));
+                     }
+                  ).fail(function(err){
+                  // In case you get an error...
+                  console.log("Error!");
+                  console.log(err);
+                  });
             }
 
             $(document).ready(function(){
@@ -155,35 +153,34 @@
                      function(event) {
                         event.preventDefault();
                         
-                        // Start date and brevet dist are already defined in vars above
-                        var items = [];
+                        var brevet_dist_submit = $("#brevet_dist_km").val();
+                        var start_time_submit = $("#begin_date").val();
+                        var checkpoints = [];
 
                         $('.control').each(function() {
-                           //Assign row object to item variable
-                           var item = $(this);
+                           // Assign row object to checkpoint variable
+                           var checkpoint = $(this);
 
-                           //In the row need to find brevet distance (km and miles versions), start time, opening time and close time
-                           var miles = item.find("input[name='miles']").val();
-                           var km = item.find("input[name='km']").val();
-                           var open = item.find("input[name='open']").val();
-                           var close = item.find("input[name='close']").val();
+                           // In the row need to find checkpoint distance (km and miles versions), start time, opening time and close time
+                           var miles = checkpoint.find("input[name='miles']").val();
+                           var km = checkpoint.find("input[name='km']").val();
+                           var open = checkpoint.find("input[name='open']").val();
+                           var close = checkpoint.find("input[name='close']").val();
 
-                           if(miles) { //Make sure that miles is entered (which also means km, open and close will be automatically filled in)
-                              // Make dictionary that will be sent to Flask
-                              item_json = {
+                           // Want to submit all 20 rows, so don't need to check if row is filled in or not
+                           checkpoint_json = {
                                  "miles": miles,
                                  "km": km,
                                  "open": open,
                                  "close": close
-                              }
-                              items.push(item_json) //item (a single checkpoint) gets added to items array that will be sent to Flask
                            }
+                           checkpoints.push(checkpoint_json);
                         });
-                        
+
                         var new_brevet_data = {
-                           "start_date": start_time,
-                           "brevet_dist": brevet_dist,
-                           "items": items}; // Here, items are the checkpoints with their respective open and close times and dist
+                           "start_time": start_time_submit,
+                           "brevet_dist": brevet_dist_submit,
+                           "checkpoints": checkpoints}; // Here, items are the checkpoints with their respective open and close times and dist
 
                         // Now send POST request to send data to backend so it can be stored in database
                         $.ajax({
@@ -210,25 +207,47 @@
                );
 
                $('#fetch').click(
-                  function() {
-                     // need to loop through the database and then fill in the table in the web app
-                     /*
-                     $.getJSON(FETCH_URL, {}).done(
-                     function(data) {
-                        var times = data.result;
-                        console.log("Got a response: ");
-                        console.log("Response.open = " + times.open);
-                        
-                        // NEED to loop through the 20km, 20 open times, 20 close times, single start time, and single brevet distance
-                        
-                     }
-                     ).fail(function(err){
-                        // In case you get an error...
-                        console.log("Error!");
-                        console.log(err);
-                     });
-                     */
-                    console.log("fetching!");
+                  function(event) {
+                        event.preventDefault();
+                        // Using getJSON to send a GET request.
+                        // getJSON is essentially running $.ajax as well, but sets the defaults for us.
+                        $.getJSON(FETCH_URL /* Send no data */).done(
+                        function(data) {
+                              if (data.status == 1) {
+                                 console.log("Successfully fetched: ", data);
+                                 $("#begin_date").val(data.result.start_time);
+                                 $("#brevet_dist_km").val(data.result.brev_dist);
+                                 var checkpoints = data.result.checkpoints; // checkpoints is an array of dictionaries (each dict contains miles, km, open, close)
+                                 
+                                 var cp_index = 0; //need to keep incrementing this so we can get the right dict from checkpoints
+                                 // Will have 20 rows, so need to loop through and update each row's data with the fetched data
+                                 $('.control').each(function() {
+                                    var mycp = checkpoints[cp_index]; // mycp is a dictionary, so now get the data by using the keys
+                                    //console.log(mycp)
+                                    
+                                    var cp_miles = mycp["miles"];
+                                    var cp_km = mycp["km"];
+                                    var cp_open = mycp["open"];
+                                    var cp_close = mycp["close"];
+
+                                    var checkpoint = $(this); // Again, set the current row to checkpoint
+                                    // Next, in the row currently selected fill in the values with the data we have
+                                    checkpoint.find("input[name='miles']").val(cp_miles);
+                                    checkpoint.find("input[name='km']").val(cp_km);
+                                    checkpoint.find("input[name='open']").val(cp_open);
+                                    checkpoint.find("input[name='close']").val(cp_close);
+
+                                    cp_index += 1; // increment this so that we can get the next checkpoint dictionary from checkpoints
+                                 });
+                              }
+                              else {
+                                 console.log("Fetch failed: ", data);
+                              }
+                           }
+                        ).fail(function(err){
+                           // In case you get an error...
+                           console.log("Error: ", err);
+                        });
                   }
                );
 

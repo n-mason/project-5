@@ -65,15 +65,60 @@ def _calc_times():
     result = {"open": open_time, "close": close_time}
     return flask.jsonify(result=result)
 
-@app.route("/_brevet_insert")
-def _brevet_insert():
-    # Get information from JS, then call the functions that are imported from pymongo_funcs
-    pass
+@app.route("/submit", methods=["POST"])
+def submit():
+    """
+    /submit : using the submitted brevet data, insert the data into the database.
+    Accepts POST requests ONLY!
+    JSON interface: gets JSON, responds with JSON
+    """
+    try:
+        # Read the entire request body as a JSON
+        # This will fail if the request body is NOT a JSON.
+        input_json = request.json
+        # if successful, input_json is automatically parsed into a python dictionary!
+        
+        # Because input_json is a dictionary, we can retrieve the start date, brevet distance and checkpoints
+        start_time = input_json["start_time"] # Should be a string
+        brevet_distance = input_json["brevet_dist"]
+        checkpoints = input_json["checkpoints"] # Should be a list of dictionaries, each dictionary is a checkpoint's data
+
+        insertion_id = brevet_insert(start_time, brevet_distance, checkpoints) # insertion_id is the primary key for this insertion
+
+        return flask.jsonify(result={},
+                        message="Inserted the brevet data!", 
+                        status=1, # This is defined by you. You just read this value in your javascript.
+                        mongo_id=insertion_id)
+    except:
+        # The reason for the try and except is to ensure Flask responds with a JSON.
+        # If Flask catches your error, it means you didn't catch it yourself,
+        # And Flask, by default, returns the error in an HTML.
+        # We want /insert to respond with a JSON no matter what!
+        return flask.jsonify(result={},
+                        message="Oh no! Server error while attempting to submit data!", 
+                        status=0, 
+                        mongo_id='None')
 
 
-@app.route("/_brevet_fetch")
-def _brevet_fetch():
-    pass
+@app.route("/fetch")
+def fetch():
+    """
+    /fetch : fetches the newest brevet data entry from the database.
+    Accepts GET requests ONLY!
+    JSON interface: gets JSON, responds with JSON
+    """
+    try:
+        start_time_res, brev_dist_res, chckpts_res = brevet_fetch()
+        return flask.jsonify(
+                result={"start_time": start_time_res, "brev_dist": brev_dist_res, "checkpoints": chckpts_res}, 
+                status=1,
+                message="Fetched the brevet data!")
+    except:
+        return flask.jsonify(
+                result={}, 
+                status=0,
+                message="Something went wrong, couldn't fetch any brevet data!")
+
 
 #############
 
